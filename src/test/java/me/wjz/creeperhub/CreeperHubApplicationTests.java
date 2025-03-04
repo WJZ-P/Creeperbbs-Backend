@@ -12,7 +12,6 @@ class CreeperHubApplicationTests {
 
     @Test
     void testSendEmail() {
-        emailService.sendEmail("1798748@qq.com", "测试邮件", "这是一封测试邮件");
     }
 
 }

@@ -1,6 +1,7 @@
 package me.wjz.creeperhub.entity;
 
 import lombok.Data;
+import me.wjz.creeperhub.constant.ErrorType;
 
 @Data
 public class Result<T> {
@@ -13,6 +14,18 @@ public class Result<T> {
         this.code = code;
         this.message = message;
         this.data = data;
+    }
+
+    public Result(ErrorType errorType, T data) {
+        this.code = errorType.getCode();
+        this.message = errorType.getMessage();
+        this.data = data;
+    }
+
+    public Result(ErrorType errorType) {
+        this.code = errorType.getCode();
+        this.message = errorType.getMessage();
+        this.data = null;
     }
 
     // 成功静态方法
