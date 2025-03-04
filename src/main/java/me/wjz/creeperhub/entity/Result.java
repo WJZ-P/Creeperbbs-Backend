@@ -3,6 +3,8 @@ package me.wjz.creeperhub.entity;
 import lombok.Data;
 import me.wjz.creeperhub.constant.ErrorType;
 
+import java.util.Map;
+
 @Data
 public class Result<T> {
     private int code;//状态码
@@ -34,8 +36,15 @@ public class Result<T> {
     }
 
     // 失败静态方法
-    public static <T> Result<T> error(int code, String msg) {
-        return new Result<>(code, msg, null);
+    public static <T> Result<T> error(ErrorType errorType) {
+        return new Result<>(errorType, null);
     }
 
+    public static <T> Result<T> error(ErrorType errorType, T data) {
+        return new Result<>(errorType, data);
+    }
+
+    public static Result<Void> error(int code, String message) {
+        return new Result<>(code, message, null);
+    }
 }

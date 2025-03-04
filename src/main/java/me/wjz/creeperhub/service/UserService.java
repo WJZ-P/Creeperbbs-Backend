@@ -7,8 +7,16 @@ import me.wjz.creeperhub.entity.User;
 import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.mapper.UserMapper;
 import me.wjz.creeperhub.utils.HashUtil;
+import me.wjz.creeperhub.utils.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService {
@@ -18,6 +26,13 @@ public class UserService {
     private CaptchaService captchaService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+    public static final String LOGIN_ATTEMPT_LIMIT = "login_attempt_limit:";
+    @Value("${app.login.attempt-limit}")
+    private int MAX_LOGIN_ATTEMPTS;
+    @Value("${app.login.attempt-limit-expire-time}")
+    private long LOGIN_ATTEMPT_EXPIRE_TIME;
 
     public Result<Void> register(String username, String password, String email, String code) {
         //检查用户名是否已存在
@@ -45,9 +60,10 @@ public class UserService {
         User user = new User();
         user.setUsername(username);
         //密码加密
-        String hashedPwd= HashUtil.hash(password);
+        String hashedPwd = HashUtil.hash(password);
         user.setPassword(hashedPwd);
         user.setEmail(email);
+        user.setCreateTime(System.currentTimeMillis());
         //保存到数据库
         userMapper.insertUser(user);
         return Result.success("注册成功！", null);
@@ -138,5 +154,27 @@ public class UserService {
                 </body>
                 </html>""".replace("[%captchaCode%]", catpcha));
         return Result.success("验证码已发送，请注意查收！", null);
+    }
+
+    //登录
+    public Result login(String username, String password) {
+        String key = LOGIN_ATTEMPT_LIMIT + WebUtil.getClientIp();
+        long count = redisTemplate.opsForValue().increment(key, 1);//记录数量
+        if (count == 1) {
+            //说明是第一次尝试登录，加上登录限制的过期时间
+            redisTemplate.expire(key, LOGIN_ATTEMPT_EXPIRE_TIME, TimeUnit.SECONDS);
+        }
+        if (count > MAX_LOGIN_ATTEMPTS) {
+            return Result.error(ErrorType.LOGIN_ATTEMPT_EXCEED);
+        }
+
+        User targetUser = userMapper.findByUsername(username);
+        if (targetUser == null || !targetUser.getPassword().equals(HashUtil.hash(password))) {
+            Map<String, Integer> map = new HashMap<>();
+            map.put("restAttempts", MAX_LOGIN_ATTEMPTS - (int) count);
+            return Result.error(ErrorType.LOGIN_PARAMS_ERROR, map);
+        }
+
+        return Result.success("登录成功！", null);
     }
 }

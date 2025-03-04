@@ -3,6 +3,7 @@ package me.wjz.creeperhub.controller;
 import jakarta.mail.MessagingException;
 import me.wjz.creeperhub.dto.RegisterDTO;
 import me.wjz.creeperhub.entity.Result;
+import me.wjz.creeperhub.entity.User;
 import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.service.CaptchaService;
 import me.wjz.creeperhub.service.UserService;
@@ -32,5 +33,10 @@ public class UserController {
     @GetMapping("/user/sendRegisterEmail")//发送注册邮件接口
     public Result<Void> sendRegisterEmail(@RequestParam String email) throws MessagingException {
         return userService.sendRegisterEmail(email);
+    }
+
+    @PostMapping("/user/login")//登录接口
+    public Result<Void> login(@RequestBody User user) {
+        return userService.login(user.getUsername(), user.getPassword());
     }
 }

@@ -1,9 +1,12 @@
 package me.wjz.creeperhub.service;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.log4j.Log4j;
 import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.exception.CreeperException;
+import me.wjz.creeperhub.utils.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -11,6 +14,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 @Service
 public class CaptchaService {
@@ -18,13 +22,18 @@ public class CaptchaService {
     private RedisTemplate<String, String> redisTemplate;
     private static final String CAPTCHA_PREFIX = "captcha:";
     private static final String RATE_LIMIT_PREFIX = "captcha_rate_limit:";
-    private static final int CAPTCHA_LENGTH = 6;//验证码长度
-    private static final int RATE_LIMIT_TIME_WINDOW = 60;//速率限制时间窗口（秒）
-    private static final int RATE_LIMIT_MAX_REQUESTS = 2;//速率限制最大请求数
+    @Value("${app.register.captcha-length}")
+    private  int CAPTCHA_LENGTH;//验证码长度
+    @Value("${app.register.get-captcha-limit-expire-time}")
+    private  int RATE_LIMIT_TIME_WINDOW;//速率限制时间窗口
+    @Value("${app.register.get-captcha-limit}")
+    private  int RATE_LIMIT_MAX_REQUESTS;//一定时间内获取验证码的最大次数
+    @Value("${app.register.captcha-expire-time}")
+    private  int CAPTCHA_TIME_OUT;
 
     //生成验证码
     public String generateCaptcha() {
-        String ip = getClientIp();
+        String ip = WebUtil.getClientIp();
 
         if (isRateLimited(ip)) {
             throw new CreeperException(ErrorType.CAPTCHA_REQUEST_LIMIT_EXCEEDED);
@@ -34,12 +43,12 @@ public class CaptchaService {
         String captcha = generateRandomCaptcha();
         //将验证码存入redis,60秒有效期
         String key = CAPTCHA_PREFIX + ip;
-        redisTemplate.opsForValue().set(key, captcha, 60, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(key, captcha, CAPTCHA_TIME_OUT, TimeUnit.SECONDS);
         return captcha;
     }
 
     public boolean verifyCaptcha(String captcha) {
-        String ip = getClientIp();
+        String ip = WebUtil.getClientIp();
         String key = CAPTCHA_PREFIX + ip;
         String storedCaptcha = redisTemplate.opsForValue().get(key);
         if (storedCaptcha == null) {
@@ -48,19 +57,8 @@ public class CaptchaService {
         return captcha.equals(storedCaptcha);
     }
 
-    private String getClientIp() {
-        HttpServletRequest request = ((ServletRequestAttributes)
-                RequestContextHolder.getRequestAttributes())
-                .getRequest();
-
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        }
-        return ip;
-    }
-    private String generateRandomCaptcha(){
-        String chars="0123456789";
+    private String generateRandomCaptcha() {
+        String chars = "0123456789";
         Random random = new Random();
         StringBuilder captcha = new StringBuilder();
         for (int i = 0; i < CAPTCHA_LENGTH; i++) {
@@ -68,6 +66,7 @@ public class CaptchaService {
         }
         return captcha.toString();
     }
+
     //验证码生成速率限制
     private boolean isRateLimited(String ip) {
         String key = RATE_LIMIT_PREFIX + ip;
