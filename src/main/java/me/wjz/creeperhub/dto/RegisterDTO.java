@@ -1,4 +1,4 @@
-package me.wjz.creeperhub.DTO;
+package me.wjz.creeperhub.dto;
 
 import lombok.Data;
 
@@ -7,4 +7,5 @@ public class RegisterDTO {
     private String username;
     private String password;
     private String email;
+    private String code;
 }
