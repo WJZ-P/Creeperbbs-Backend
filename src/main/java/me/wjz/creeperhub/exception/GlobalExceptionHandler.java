@@ -1,5 +1,7 @@
 package me.wjz.creeperhub.exception;
 
+import me.wjz.creeperhub.constant.ErrorType;
+import me.wjz.creeperhub.entity.CreeperResponseEntity;
 import me.wjz.creeperhub.entity.Result;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -8,12 +10,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
-    public Result handleGlobalException(RuntimeException exception) {
+    public CreeperResponseEntity handleGlobalException(RuntimeException exception) {
         exception.printStackTrace();
 
         if (exception instanceof CreeperException)
-            return ((CreeperException) exception).getResult();
+            return new CreeperResponseEntity(((CreeperException) exception).getResult());
         else
-            return Result.error(500, exception.getMessage());
+            return new CreeperResponseEntity(Result.error(ErrorType.UNKNOWN_ERROR));
     }
 }

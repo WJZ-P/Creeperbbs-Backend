@@ -16,4 +16,12 @@ public class WebUtil {
         }
         return ip;
     }
+
+    public static String getDeviceInfo() {
+        HttpServletRequest request = ((ServletRequestAttributes)
+                RequestContextHolder.getRequestAttributes())
+                .getRequest();
+        String userAgent = request.getHeader("User-Agent");
+        return (userAgent == null || userAgent.isEmpty()) ? "未知设备" : userAgent;
+    }
 }

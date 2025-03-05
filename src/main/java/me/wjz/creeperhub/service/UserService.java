@@ -1,18 +1,24 @@
 package me.wjz.creeperhub.service;
 
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.entity.Result;
+import me.wjz.creeperhub.entity.Token;
 import me.wjz.creeperhub.entity.User;
 import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.mapper.UserMapper;
 import me.wjz.creeperhub.utils.HashUtil;
+import me.wjz.creeperhub.utils.JwtUtil;
+import me.wjz.creeperhub.utils.RandomUtil;
 import me.wjz.creeperhub.utils.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -156,17 +162,21 @@ public class UserService {
     }
 
     //登录
-    public Result login(String username, String password) {
-        String key = LOGIN_ATTEMPT_LIMIT + WebUtil.getClientIp();
-        long count = redisTemplate.opsForValue().increment(key, 1);//记录数量
+    public Result login(User user, HttpServletResponse response) {
+        String username = user.getUsername();
+        String password = user.getPassword();
+        //下面是redis做登录尝试限制
+        String redisKey = LOGIN_ATTEMPT_LIMIT + WebUtil.getClientIp();
+        long count = redisTemplate.opsForValue().increment(redisKey, 1);//记录数量
         if (count == 1) {
             //说明是第一次尝试登录，加上登录限制的过期时间
-            redisTemplate.expire(key, LOGIN_ATTEMPT_EXPIRE_TIME, TimeUnit.SECONDS);
+            redisTemplate.expire(redisKey, LOGIN_ATTEMPT_EXPIRE_TIME, TimeUnit.SECONDS);
         }
         if (count > MAX_LOGIN_ATTEMPTS) {
             return Result.error(ErrorType.LOGIN_ATTEMPT_EXCEED);
         }
 
+        //校验用户名和密码
         User targetUser = userMapper.findByUsername(username);
         if (targetUser == null || !targetUser.getPassword().equals(HashUtil.hash(password))) {
             Map<String, Integer> map = new HashMap<>();
@@ -174,8 +184,28 @@ public class UserService {
             return Result.error(ErrorType.LOGIN_PARAMS_ERROR, map);
         }
 
-        //给前端签发jwt
+        //下面完成成功登录后的后续操作
 
+        //先设置好token对象的属性
+        Token token = new Token();
+        token.setToken(RandomUtil.getRandomString(32));
+        token.setUserId(targetUser.getId());
+        token.setCreateTime(System.currentTimeMillis());
+        token.setIpAddress(WebUtil.getClientIp());
+        token.setDeviceInfo(WebUtil.getDeviceInfo());
+
+        //token设置到HTTP-only的cookie中
+        Cookie cookie = new Cookie("token", token.getToken());
+        cookie.setHttpOnly(true);
+        //cookie.setSecure(true);//https传输
+        cookie.setMaxAge(60 * 60 * 24 * 30);//30天
+        cookie.setPath("/");//作用于整个域名
+        response.addCookie(cookie);
+        //这里必须设置cookie的最大时间，否则只会存储在内存中作为会话session，重启就会失效！
+        //设置了最大时间后会持久化到硬盘里
+
+        //将token对象存入数据库
+        userMapper.insertToken(token);
         return Result.success("登录成功！", null);
     }
 }

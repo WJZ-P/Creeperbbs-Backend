@@ -1,14 +1,17 @@
 package me.wjz.creeperhub.controller;
 
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.dto.RegisterDTO;
+import me.wjz.creeperhub.entity.CreeperResponseEntity;
 import me.wjz.creeperhub.entity.Result;
 import me.wjz.creeperhub.entity.User;
-import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.service.CaptchaService;
 import me.wjz.creeperhub.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api")
@@ -19,24 +22,28 @@ public class UserController {
     private CaptchaService captchaService;
 
     @PostMapping("/user/register")//注册接口
-    public Result<Void> register(@RequestBody RegisterDTO registerDTO) {
-        return userService.register(registerDTO.getUsername(), registerDTO.getPassword(),
+    public CreeperResponseEntity register(@RequestBody RegisterDTO registerDTO) {
+        Result<Void> result = userService.register(registerDTO.getUsername(), registerDTO.getPassword(),
                 registerDTO.getEmail(), registerDTO.getCode());
+        return new CreeperResponseEntity(result);
     }
 
-    @GetMapping("/user/getCaptcha")//获取验证码接口,仅是测试用
-    public Result<String> getCaptcha() {
+    @GetMapping("/user/get_captcha")//获取验证码接口,仅是测试用
+    public CreeperResponseEntity getCaptcha() {
         String captcha = captchaService.generateCaptcha();
-        return Result.success("验证码获取成功", captcha);
+        // 创建 HashMap 用于封装验证码数据
+        HashMap<String, Object> captchaData = new HashMap<>();
+        captchaData.put("captcha", captcha);
+        return new CreeperResponseEntity(Result.success("验证码获取成功", captchaData));
     }
 
-    @GetMapping("/user/sendRegisterEmail")//发送注册邮件接口
-    public Result<Void> sendRegisterEmail(@RequestParam String email) throws MessagingException {
-        return userService.sendRegisterEmail(email);
+    @GetMapping("/user/send_register_email")//发送注册邮件接口
+    public CreeperResponseEntity sendRegisterEmail(@RequestParam String email) throws MessagingException {
+        return new CreeperResponseEntity(userService.sendRegisterEmail(email));
     }
 
     @PostMapping("/user/login")//登录接口
-    public Result<Void> login(@RequestBody User user) {
-        return userService.login(user.getUsername(), user.getPassword());
+    public CreeperResponseEntity login(@RequestBody User user, HttpServletResponse response) {
+        return new CreeperResponseEntity(userService.login(user,response));
     }
 }

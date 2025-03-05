@@ -12,6 +12,6 @@ public class CreeperException extends RuntimeException {
         this.result = result;
     }
     public CreeperException(ErrorType errorType){
-        this.result = Result.error(errorType.getCode(), errorType.getMessage());
+        this.result = Result.error(errorType);
     }
 }
