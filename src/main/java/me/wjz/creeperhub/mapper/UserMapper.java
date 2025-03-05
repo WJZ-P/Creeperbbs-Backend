@@ -16,9 +16,12 @@ public interface UserMapper {
 
     @Select("SELECT * FROM users WHERE username = #{username}")
     User findByUsername(String username);
+
     @Insert("INSERT INTO user_tokens (user_id, token,ip_address,device_info,create_time) " +
             "VALUES (#{userId}, #{token}, #{ipAddress},#{deviceInfo},#{createTime})")
     void insertToken(Token token);
 
+    @Select("SELECT * FROM users WHERE email = #{email}")
+    User findByEmail(String email);
 }
 

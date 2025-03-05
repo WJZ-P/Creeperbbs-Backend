@@ -29,8 +29,8 @@ public class UserController {
     }
 
     @GetMapping("/user/get_captcha")//获取验证码接口,仅是测试用
-    public CreeperResponseEntity getCaptcha() {
-        String captcha = captchaService.generateCaptcha();
+    public CreeperResponseEntity getCaptcha(String email) {
+        String captcha = captchaService.generateCaptcha(email);
         // 创建 HashMap 用于封装验证码数据
         HashMap<String, Object> captchaData = new HashMap<>();
         captchaData.put("captcha", captcha);
@@ -44,6 +44,6 @@ public class UserController {
 
     @PostMapping("/user/login")//登录接口
     public CreeperResponseEntity login(@RequestBody User user, HttpServletResponse response) {
-        return new CreeperResponseEntity(userService.login(user,response));
+        return new CreeperResponseEntity(userService.login(user, response));
     }
 }

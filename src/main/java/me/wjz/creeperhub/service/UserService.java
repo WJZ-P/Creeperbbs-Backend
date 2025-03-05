@@ -10,15 +10,14 @@ import me.wjz.creeperhub.entity.User;
 import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.mapper.UserMapper;
 import me.wjz.creeperhub.utils.HashUtil;
-import me.wjz.creeperhub.utils.JwtUtil;
 import me.wjz.creeperhub.utils.RandomUtil;
 import me.wjz.creeperhub.utils.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +32,10 @@ public class UserService {
     private EmailService emailService;
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
+    @Autowired
+    private TokenService tokenService;
     public static final String LOGIN_ATTEMPT_LIMIT = "login_attempt_limit:";
+
     @Value("${app.login.attempt-limit}")
     private int MAX_LOGIN_ATTEMPTS;
     @Value("${app.login.attempt-limit-expire-time}")
@@ -80,7 +82,7 @@ public class UserService {
             throw new CreeperException(ErrorType.USER_EMAIL_INCORRECT);
         }
 
-        String catpcha = captchaService.generateCaptcha();
+        String captcha = captchaService.generateCaptcha(email);
         emailService.sendEmail(email, "欢迎注册苦力怕论坛！", """
                 <!DOCTYPE html>
                 <html lang="zh-CN">
@@ -157,11 +159,12 @@ public class UserService {
                             <a href="www.CreeperHub.com" style="color: #007bff; text-decoration: none;">[www.CreeperHub.com]</a> </p>
                     </div>
                 </body>
-                </html>""".replace("[%captchaCode%]", catpcha));
+                </html>""".replace("[%captchaCode%]", captcha));
         return Result.success("验证码已发送，请注意查收！", null);
     }
 
     //登录
+    @Transactional
     public Result login(User user, HttpServletResponse response) {
         String username = user.getUsername();
         String password = user.getPassword();
@@ -206,6 +209,10 @@ public class UserService {
 
         //将token对象存入数据库
         userMapper.insertToken(token);
+        //然后token存入redis中
+        tokenService.setToken(token);
+        //user也缓存一份到redis中
+        redisTemplate.opsForValue().set("user:" + targetUser.getUsername(), targetUser.toString(), 60 * 60 * 24 * 30, TimeUnit.SECONDS);
         return Result.success("登录成功！", null);
     }
 }

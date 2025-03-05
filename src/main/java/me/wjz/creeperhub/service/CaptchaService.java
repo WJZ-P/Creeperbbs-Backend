@@ -23,16 +23,16 @@ public class CaptchaService {
     private static final String CAPTCHA_PREFIX = "captcha:";
     private static final String RATE_LIMIT_PREFIX = "captcha_rate_limit:";
     @Value("${app.register.captcha-length}")
-    private  int CAPTCHA_LENGTH;//验证码长度
+    private int CAPTCHA_LENGTH;//验证码长度
     @Value("${app.register.get-captcha-limit-expire-time}")
-    private  int RATE_LIMIT_TIME_WINDOW;//速率限制时间窗口
+    private int RATE_LIMIT_TIME_WINDOW;//速率限制时间窗口
     @Value("${app.register.get-captcha-limit}")
-    private  int RATE_LIMIT_MAX_REQUESTS;//一定时间内获取验证码的最大次数
+    private int RATE_LIMIT_MAX_REQUESTS;//一定时间内获取验证码的最大次数
     @Value("${app.register.captcha-expire-time}")
-    private  int CAPTCHA_TIME_OUT;
+    private int CAPTCHA_TIME_OUT;
 
     //生成验证码
-    public String generateCaptcha() {
+    public String generateCaptcha(String emailAddress) {
         String ip = WebUtil.getClientIp();
 
         if (isRateLimited(ip)) {
@@ -42,7 +42,7 @@ public class CaptchaService {
         //生成随机验证码
         String captcha = generateRandomCaptcha();
         //将验证码存入redis,60秒有效期
-        String key = CAPTCHA_PREFIX + ip;
+        String key = CAPTCHA_PREFIX + ip + ":" + emailAddress;
         redisTemplate.opsForValue().set(key, captcha, CAPTCHA_TIME_OUT, TimeUnit.SECONDS);
         return captcha;
     }
