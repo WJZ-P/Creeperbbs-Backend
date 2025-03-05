@@ -25,6 +25,6 @@ public class LoginInterceptor implements HandlerInterceptor {
             throw new CreeperException(Result.error(ErrorType.UN_LOGIN));
         }
         //校验token是否正确
-
+        return true;
     }
 }
