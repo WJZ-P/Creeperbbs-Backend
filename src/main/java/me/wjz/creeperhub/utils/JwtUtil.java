@@ -16,9 +16,6 @@ public class JwtUtil {
     private static String SECRET_KEY;
     private static long EXPIRATION;
 
-    @Autowired
-    private UserService userService;
-
     @Value("${app.jwt.secret-key}")//这两个是实例字段，用于接收value注入。
     private String secret_key;
     @Value("${app.jwt.expiration}")
@@ -51,18 +48,6 @@ public class JwtUtil {
             throw new CreeperException(ErrorType.UNKNOWN_ERROR);
         }
     }
-
-    public static boolean verlidateToken(String token) {
-        try {
-
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-
-    }
-
 }
 
 

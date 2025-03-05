@@ -20,6 +20,5 @@ public interface UserMapper {
             "VALUES (#{userId}, #{token}, #{ipAddress},#{deviceInfo},#{createTime})")
     void insertToken(Token token);
 
-    List<String> findTokenByUserId(int userId);
 }
 
