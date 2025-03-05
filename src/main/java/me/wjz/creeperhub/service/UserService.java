@@ -11,7 +11,6 @@ import me.wjz.creeperhub.utils.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -174,6 +173,8 @@ public class UserService {
             map.put("restAttempts", MAX_LOGIN_ATTEMPTS - (int) count);
             return Result.error(ErrorType.LOGIN_PARAMS_ERROR, map);
         }
+
+        //给前端签发jwt
 
         return Result.success("登录成功！", null);
     }
