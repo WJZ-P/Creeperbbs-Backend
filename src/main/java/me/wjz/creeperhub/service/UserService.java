@@ -31,7 +31,7 @@ public class UserService {
     @Autowired
     private EmailService emailService;
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private TokenService tokenService;
     public static final String LOGIN_ATTEMPT_LIMIT = "login_attempt_limit:";
@@ -55,7 +55,7 @@ public class UserService {
             throw new CreeperException(ErrorType.USER_EMAIL_INCORRECT);
         }
         //校验验证码是否正确
-        if (!captchaService.verifyCaptcha(code)) {
+        if (!captchaService.verifyCaptcha(code, email)) {
             throw new CreeperException(ErrorType.CAPTCHA_INCORRECT);
         }
         //校验密码是否符合格式
@@ -81,7 +81,9 @@ public class UserService {
         if (!email.matches("^\\w+([-+.]\\w+)*@qq.com$")) {
             throw new CreeperException(ErrorType.USER_EMAIL_INCORRECT);
         }
-
+        if (userMapper.findByEmail(email) != null)
+            throw new CreeperException(ErrorType.USER_EMAIL_REGISTERED);
+        //下面的方法内部会进行缓存控制，防止恶意调用
         String captcha = captchaService.generateCaptcha(email);
         emailService.sendEmail(email, "欢迎注册苦力怕论坛！", """
                 <!DOCTYPE html>
@@ -150,7 +152,7 @@ public class UserService {
                         <p>亲爱的用户，</p>
                         <p>感谢您注册苦力怕论坛！为了完成注册，请使用以下验证码进行邮箱验证：</p>
                         <p class="verification-code"> [%captchaCode%]  </p>
-                        <p>请将此验证码填写到注册页面，验证码有效期为 1 分钟。</p>
+                        <p>请将此验证码填写到注册页面，验证码有效期为 3 分钟。</p>
                         <p>如果您没有进行注册操作，请忽略此邮件。请勿将验证码泄露给他人。</p>
                         <p>期待您在苦力怕论坛的精彩旅程！</p>
                         <p class="footer">
@@ -194,6 +196,7 @@ public class UserService {
         token.setToken(RandomUtil.getRandomString(32));
         token.setUserId(targetUser.getId());
         token.setCreateTime(System.currentTimeMillis());
+        token.setRefreshTime(System.currentTimeMillis());
         token.setIpAddress(WebUtil.getClientIp());
         token.setDeviceInfo(WebUtil.getDeviceInfo());
 
@@ -207,12 +210,13 @@ public class UserService {
         //这里必须设置cookie的最大时间，否则只会存储在内存中作为会话session，重启就会失效！
         //设置了最大时间后会持久化到硬盘里
 
-        //将token对象存入数据库
-        userMapper.insertToken(token);
+//        //将token对象存入数据库
+//        userMapper.insertToken(token);    感觉没必要存入数据库，单独放redis里就行
         //然后token存入redis中
         tokenService.setToken(token);
         //user也缓存一份到redis中
-        redisTemplate.opsForValue().set("user:" + targetUser.getUsername(), targetUser.toString(), 60 * 60 * 24 * 30, TimeUnit.SECONDS);
+        redisTemplate.opsForHash().putAll("user:" + targetUser.getUsername(), targetUser.toMap());
+        redisTemplate.expire("user:" + targetUser.getUsername(), 60 * 60 * 24 * 30, TimeUnit.SECONDS);
         return Result.success("登录成功！", null);
     }
 }

@@ -11,11 +11,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public CreeperResponseEntity handleGlobalException(RuntimeException exception) {
-        exception.printStackTrace();
-
         if (exception instanceof CreeperException)
             return new CreeperResponseEntity(((CreeperException) exception).getResult());
-        else
+        else {
+            exception.printStackTrace();
             return new CreeperResponseEntity(Result.error(ErrorType.UNKNOWN_ERROR));
+        }
     }
 }

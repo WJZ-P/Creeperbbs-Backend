@@ -18,6 +18,7 @@ public enum ErrorType {
     LOGIN_PARAMS_ERROR(HttpStatus.UNAUTHORIZED, 10010, "用户名或密码错误!"),
     JWT_EXPIRED(HttpStatus.UNAUTHORIZED, 10011, "JWT已过期"),
     UN_LOGIN(HttpStatus.UNAUTHORIZED, 10013, "你还未登录!"),
+    USER_EMAIL_REGISTERED(HttpStatus.CONFLICT, 10014, "该邮箱已被注册"),
     //系统层错误
     JWT_PARSE_ERROR(HttpStatus.BAD_REQUEST, 10012, "JWT解析错误"),
     UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 55555, "未知错误"),

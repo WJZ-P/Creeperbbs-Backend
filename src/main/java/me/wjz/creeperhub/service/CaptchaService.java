@@ -32,7 +32,7 @@ public class CaptchaService {
     private int CAPTCHA_TIME_OUT;
 
     //生成验证码
-    public String generateCaptcha(String emailAddress) {
+    public String generateCaptcha(String captchaContent) {
         String ip = WebUtil.getClientIp();
 
         if (isRateLimited(ip)) {
@@ -42,14 +42,14 @@ public class CaptchaService {
         //生成随机验证码
         String captcha = generateRandomCaptcha();
         //将验证码存入redis,60秒有效期
-        String key = CAPTCHA_PREFIX + ip + ":" + emailAddress;
+        String key = CAPTCHA_PREFIX + ip + ":" + captchaContent;
         redisTemplate.opsForValue().set(key, captcha, CAPTCHA_TIME_OUT, TimeUnit.SECONDS);
         return captcha;
     }
 
-    public boolean verifyCaptcha(String captcha) {
+    public boolean verifyCaptcha(String captcha,String captchaContent) {
         String ip = WebUtil.getClientIp();
-        String key = CAPTCHA_PREFIX + ip;
+        String key = CAPTCHA_PREFIX + ip+":"+captchaContent;
         String storedCaptcha = redisTemplate.opsForValue().get(key);
         if (storedCaptcha == null) {
             throw new CreeperException(ErrorType.CAPTCHA_NOT_FOUND);
