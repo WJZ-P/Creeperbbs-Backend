@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.controller.UserController;
 import me.wjz.creeperhub.dto.UserDTO;
+import me.wjz.creeperhub.dto.UserModifyDTO;
 import me.wjz.creeperhub.entity.Result;
 import me.wjz.creeperhub.entity.Token;
 import me.wjz.creeperhub.entity.User;
@@ -208,7 +209,7 @@ public class UserService {
 
         //校验用户名和密码
         User targetUser = userMapper.findByUsername(username);
-        if (targetUser == null || !targetUser.getPassword().equals(HashUtil.hash(password))) {
+        if (targetUser == null || !HashUtil.check(password, targetUser.getPassword())) {
             Map<String, Integer> map = new HashMap<>();
             map.put("restAttempts", MAX_LOGIN_ATTEMPTS - (int) count);
             return Result.error(ErrorType.LOGIN_PARAMS_ERROR, map);
@@ -290,5 +291,9 @@ public class UserService {
 
     public List<Long> getAllUserIds() {
         return userMapper.getAllUserIds();
+    }
+
+    public Result updateUserInfo(UserModifyDTO userModifyDTO) {
+
     }
 }

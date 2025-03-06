@@ -1,22 +1,16 @@
 package me.wjz.creeperhub.controller;
 
-import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
-import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
-import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.dto.RegisterDTO;
+import me.wjz.creeperhub.dto.UserModifyDTO;
 import me.wjz.creeperhub.entity.CreeperResponseEntity;
 import me.wjz.creeperhub.entity.Result;
 import me.wjz.creeperhub.entity.Token;
 import me.wjz.creeperhub.entity.User;
-import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -57,4 +51,8 @@ public class UserController {
         return new CreeperResponseEntity(userService.getUserInfo(id));
     }
 
+    @PutMapping("/user/profile")//修改用户信息接口
+    public CreeperResponseEntity updateUserInfo(@RequestBody UserModifyDTO userModifyDTO) {
+        return new CreeperResponseEntity(userService.updateUserInfo(userModifyDTO));
+    }
 }

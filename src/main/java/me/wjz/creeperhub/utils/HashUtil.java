@@ -1,20 +1,16 @@
 package me.wjz.creeperhub.utils;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class HashUtil {
     public static String hash(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            //密码转字节数组并哈希
-            byte[] hash = md.digest(password.getBytes());
-            //将哈希后的字节数组转成16进制字符串
-            return bytesToHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        return BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+    public static boolean check(String password, String hashedPassword) {
+        return BCrypt.checkpw(password, hashedPassword);
     }
 
     private static String bytesToHex(byte[] bytes) {
