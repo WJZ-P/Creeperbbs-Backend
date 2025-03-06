@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.entity.Result;
+import me.wjz.creeperhub.entity.Token;
 import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.service.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,10 @@ public class LoginInterceptor implements HandlerInterceptor {
         if (token == null || token.isEmpty() || !tokenService.validateToken(token)) {
             throw new CreeperException(Result.error(ErrorType.UN_LOGIN));
         }
+        //更新token有效期
 
-        return HandlerInterceptor.super.preHandle(request, response, handler);
+
+        //用户存在，放行
+        return true;
     }
 }

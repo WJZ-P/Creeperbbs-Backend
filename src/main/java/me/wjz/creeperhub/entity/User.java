@@ -17,6 +17,27 @@ public class User {
     private Long createTime;
     private Long updateTime;
     private Integer isBan;
+    private String title;
+    private Integer permission;
+
+    public static User fromMap(Map<Object, Object> map) {
+        User user = new User();
+        Object idObj = map.get("id");
+        if (idObj != null) user.setId(((Number) idObj).longValue());
+        Object scoreObj = map.get("score");
+        if (scoreObj != null) user.setScore(((Number) scoreObj).intValue());
+        Object createTimeObj = map.get("createTime");
+        if (createTimeObj != null) user.setCreateTime(((Number) createTimeObj).longValue());
+        Object updateTimeObj = map.get("updateTime");
+        if (updateTimeObj != null) user.setUpdateTime(((Number) updateTimeObj).longValue());
+        Object isBanObj = map.get("isBan");
+        if (isBanObj != null) user.setIsBan(((Number) isBanObj).intValue());
+        user.setUsername(map.get("username") != null ? (String) map.get("username") : null);
+        user.setPassword(map.get("password") != null ? (String) map.get("password") : null);
+        user.setEmail(map.get("email") != null ? (String) map.get("email") : null);
+        user.setAvatar(map.get("avatar") != null ? (String) map.get("avatar") : null);
+        return user;
+    }
 
     @Override
     public String toString() {

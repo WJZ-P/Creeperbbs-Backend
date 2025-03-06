@@ -1,9 +1,14 @@
 package me.wjz.creeperhub.service;
 
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnels;
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.constant.ErrorType;
+import me.wjz.creeperhub.controller.UserController;
+import me.wjz.creeperhub.dto.UserDTO;
 import me.wjz.creeperhub.entity.Result;
 import me.wjz.creeperhub.entity.Token;
 import me.wjz.creeperhub.entity.User;
@@ -11,15 +16,16 @@ import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.mapper.UserMapper;
 import me.wjz.creeperhub.utils.HashUtil;
 import me.wjz.creeperhub.utils.RandomUtil;
+import me.wjz.creeperhub.utils.RedisUtil;
 import me.wjz.creeperhub.utils.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -31,15 +37,31 @@ public class UserService {
     @Autowired
     private EmailService emailService;
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-    @Autowired
     private TokenService tokenService;
+    @Autowired
+    private RedisService redisService;
     public static final String LOGIN_ATTEMPT_LIMIT = "login_attempt_limit:";
-
     @Value("${app.login.attempt-limit}")
     private int MAX_LOGIN_ATTEMPTS;
     @Value("${app.login.attempt-limit-expire-time}")
     private long LOGIN_ATTEMPT_EXPIRE_TIME;
+    public BloomFilter<Long> userBloomFilter;
+
+    @PostConstruct
+    public void init() {
+        //初始化布隆过滤器
+        List<Long> userIdList = getAllUserIds();
+        if (userIdList != null && !userIdList.isEmpty()) {
+            userBloomFilter = BloomFilter.create(
+                    Funnels.longFunnel(),
+                    userIdList.size() + 100,
+                    0.01
+            );
+            for (Long id : userIdList) {
+                userBloomFilter.put(id);
+            }
+        } else System.out.println("UserController布隆过滤器初始化失败，无user数据");
+    }
 
     public Result<Void> register(String username, String password, String email, String code) {
         //检查用户名是否已存在
@@ -71,8 +93,12 @@ public class UserService {
         user.setPassword(hashedPwd);
         user.setEmail(email);
         user.setCreateTime(System.currentTimeMillis());
-        //保存到数据库
-        userMapper.insertUser(user);
+
+        //保存到数据库，注意这里只有过了一次数据库之后才会有id属性，因为是数据库自增的
+        user.setId(userMapper.insertUser(user));
+        //往布隆过滤器中添加新注册的用户ID
+        userBloomFilter.put(user.getId());
+
         return Result.success("注册成功！", null);
     }
 
@@ -166,16 +192,15 @@ public class UserService {
     }
 
     //登录
-    @Transactional
     public Result login(User user, HttpServletResponse response) {
         String username = user.getUsername();
         String password = user.getPassword();
         //下面是redis做登录尝试限制
         String redisKey = LOGIN_ATTEMPT_LIMIT + WebUtil.getClientIp();
-        long count = redisTemplate.opsForValue().increment(redisKey, 1);//记录数量
+        long count = redisService.increase(redisKey, 1);//记录数量
         if (count == 1) {
             //说明是第一次尝试登录，加上登录限制的过期时间
-            redisTemplate.expire(redisKey, LOGIN_ATTEMPT_EXPIRE_TIME, TimeUnit.SECONDS);
+            redisService.expire(redisKey, LOGIN_ATTEMPT_EXPIRE_TIME, TimeUnit.SECONDS);
         }
         if (count > MAX_LOGIN_ATTEMPTS) {
             return Result.error(ErrorType.LOGIN_ATTEMPT_EXCEED);
@@ -196,9 +221,9 @@ public class UserService {
         token.setToken(RandomUtil.getRandomString(32));
         token.setUserId(targetUser.getId());
         token.setCreateTime(System.currentTimeMillis());
-        token.setRefreshTime(System.currentTimeMillis());
         token.setIpAddress(WebUtil.getClientIp());
         token.setDeviceInfo(WebUtil.getDeviceInfo());
+        token.setId(UUID.randomUUID().toString());
 
         //token设置到HTTP-only的cookie中
         Cookie cookie = new Cookie("token", token.getToken());
@@ -212,11 +237,58 @@ public class UserService {
 
 //        //将token对象存入数据库
 //        userMapper.insertToken(token);    感觉没必要存入数据库，单独放redis里就行
+
         //然后token存入redis中
         tokenService.setToken(token);
+
         //user也缓存一份到redis中
-        redisTemplate.opsForHash().putAll("user:" + targetUser.getUsername(), targetUser.toMap());
-        redisTemplate.expire("user:" + targetUser.getUsername(), 60 * 60 * 24 * 30, TimeUnit.SECONDS);
+        redisService.setMap("user:" + targetUser.getId(), targetUser.toMap());
+        redisService.expire("user:" + targetUser.getId(), 60 * 60 * 24 * 30, TimeUnit.SECONDS);
         return Result.success("登录成功！", null);
+    }
+
+    public Result logout(String token) {
+        String senderToken = WebUtil.getToken();
+        //先校验请求中的token是否存在，鉴别请求发起者是否为用户
+        if (senderToken == null || !tokenService.validateToken(senderToken)) {
+            throw new CreeperException(ErrorType.TOKEN_ERROR);
+        }
+        //从redis中获取该用户的token，方便后续判断
+        Token token1 = tokenService.getToken(senderToken);
+        Token token2 = tokenService.getToken(token);
+        if (token1 == null) throw new CreeperException(ErrorType.TOKEN_ERROR);
+        if (token2 == null) throw new CreeperException(ErrorType.TARGET_TOKEN_ERROR);
+        //判断token是否匹配
+        if (!token1.getUserId().equals(token2.getUserId())) throw new CreeperException(ErrorType.TOKEN_UNMATCHED);
+        //从redis中删除该用户的token
+        tokenService.deleteToken(token);
+        return Result.success("登出成功！", null);
+    }
+
+    public Result getUserInfo(Long id) {
+        //使用布隆过滤器进行校验
+        if (!userBloomFilter.mightContain(id)) {
+            System.out.println("布隆过滤器拦截了id=" + id + "的查询");
+            throw new CreeperException(ErrorType.USER_NOT_FOUND);
+        }
+
+        User user = null;
+        //先从redis中查
+        Map<Object, Object> map = redisService.getMap("user:" + id);
+        if (!map.isEmpty()) {
+            user = User.fromMap(map);
+            return Result.success("获取用户信息成功！", UserDTO.fromUser(user));
+        } else {
+            user = userMapper.findById(id);
+            if (user == null) throw new CreeperException(ErrorType.USER_NOT_FOUND);
+            redisService.setMap("user:" + id, user.toMap());
+            redisService.expire("user:" + id, 60 * 60 * 24 * 30, TimeUnit.SECONDS);
+            return Result.success("获取用户信息成功！", UserDTO.fromUser(user));
+        }
+
+    }
+
+    public List<Long> getAllUserIds() {
+        return userMapper.getAllUserIds();
     }
 }

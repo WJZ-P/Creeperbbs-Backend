@@ -19,11 +19,13 @@ public enum ErrorType {
     JWT_EXPIRED(HttpStatus.UNAUTHORIZED, 10011, "JWT已过期"),
     UN_LOGIN(HttpStatus.UNAUTHORIZED, 10013, "你还未登录!"),
     USER_EMAIL_REGISTERED(HttpStatus.CONFLICT, 10014, "该邮箱已被注册"),
+    TOKEN_ERROR(HttpStatus.UNAUTHORIZED, 10015, "Token错误"),
     //系统层错误
     JWT_PARSE_ERROR(HttpStatus.BAD_REQUEST, 10012, "JWT解析错误"),
     UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 55555, "未知错误"),
 
-    ;
+    TARGET_TOKEN_ERROR(HttpStatus.BAD_REQUEST, 10016, "目标Token错误"),
+    TOKEN_UNMATCHED(HttpStatus.BAD_REQUEST, 10017, "Token不匹配");
 
     private final HttpStatus status; //  状态码枚举，类型为 HttpStatus
     private final int code;

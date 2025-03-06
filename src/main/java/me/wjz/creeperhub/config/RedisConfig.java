@@ -7,11 +7,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import java.util.Map;
+
 @Configuration
 public class RedisConfig {
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, Map<String,Object>> redisTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Map<String,Object>> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
 
         // Key 序列化器还是用 StringRedisSerializer 喵！
