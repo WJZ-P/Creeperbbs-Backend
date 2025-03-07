@@ -4,6 +4,8 @@ import lombok.Data;
 
 @Data
 public class UserModifyDTO {
+    private Long id;
+
     //存放可以修改的用户字段
     private String username;
     private String avatar;

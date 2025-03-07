@@ -41,6 +41,8 @@ public class UserService {
     private TokenService tokenService;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private RedisUtil redisUtil;
     public static final String LOGIN_ATTEMPT_LIMIT = "login_attempt_limit:";
     @Value("${app.login.attempt-limit}")
     private int MAX_LOGIN_ATTEMPTS;
@@ -294,6 +296,21 @@ public class UserService {
     }
 
     public Result updateUserInfo(UserModifyDTO userModifyDTO) {
+        String token = WebUtil.getToken();
+        User user = redisUtil.getUser(token);
 
+        //直接校验密码
+        if (userModifyDTO.getOriginalPassword() != null && userModifyDTO.getNewPassword() != null) {
+            //根据token查找当前用户
+            if (!HashUtil.check(userModifyDTO.getOriginalPassword(), user.getPassword())) {
+                //输入的旧密码不匹配
+                throw new CreeperException(ErrorType.ORIGINAL_PASSWORD_ERROR);
+            }
+        }
+
+        //更新用户信息
+        userModifyDTO.setId(user.getId());
+        userMapper.updateUserInfo(userModifyDTO);
+        return Result.success("修改用户信息成功！", null);
     }
 }

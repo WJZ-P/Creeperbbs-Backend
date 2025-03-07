@@ -1,11 +1,9 @@
 package me.wjz.creeperhub.mapper;
 
+import me.wjz.creeperhub.dto.UserModifyDTO;
 import me.wjz.creeperhub.entity.Token;
 import me.wjz.creeperhub.entity.User;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Options;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -25,9 +23,24 @@ public interface UserMapper {
 
     @Select("SELECT * FROM users WHERE email = #{email}")
     User findByEmail(String email);
+
     @Select("SELECT * FROM users WHERE id = #{id}")
     User findById(Long id);
+
     @Select("SELECT id FROM users")
     List<Long> getAllUserIds();
+
+    @Update({
+            "<script>",
+            "UPDATE users",
+            "<set>",
+            "<if test='userModifyDTO.username != null'>username = #{userModifyDTO.username},</if>",
+            "<if test='userModifyDTO.avatar != null'>avatar = #{userModifyDTO.avatar},</if>",
+            "<if test='userModifyDTO.newPassword != null'>password = #{userModifyDTO.newPassword},</if>",
+            "</set>",
+            "WHERE id = #{userModifyDTO.id}",
+            "</script>"
+    })
+    void updateUserInfo(UserModifyDTO userModifyDTO);
 }
 

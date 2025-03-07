@@ -25,7 +25,8 @@ public enum ErrorType {
     UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, 55555, "未知错误"),
 
     TARGET_TOKEN_ERROR(HttpStatus.BAD_REQUEST, 10016, "目标Token错误"),
-    TOKEN_UNMATCHED(HttpStatus.BAD_REQUEST, 10017, "Token不匹配");
+    TOKEN_UNMATCHED(HttpStatus.BAD_REQUEST, 10017, "Token不匹配"),
+    ORIGINAL_PASSWORD_ERROR(HttpStatus.BAD_REQUEST, 10018, "原密码错误");
 
     private final HttpStatus status; //  状态码枚举，类型为 HttpStatus
     private final int code;
