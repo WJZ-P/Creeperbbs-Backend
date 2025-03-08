@@ -34,11 +34,11 @@ public interface UserMapper {
             "<script>",
             "UPDATE users",
             "<set>",
-            "<if test='userModifyDTO.username != null'>username = #{userModifyDTO.username},</if>",
-            "<if test='userModifyDTO.avatar != null'>avatar = #{userModifyDTO.avatar},</if>",
-            "<if test='userModifyDTO.newPassword != null'>password = #{userModifyDTO.newPassword},</if>",
+            "<if test='username != null'>username = #{username},</if>",
+            "<if test='avatar != null'>avatar = #{avatar},</if>",
+            "<if test='newPassword != null'>password = #{newPassword},</if>",
             "</set>",
-            "WHERE id = #{userModifyDTO.id}",
+            "WHERE id = #{id}",
             "</script>"
     })
     void updateUserInfo(UserModifyDTO userModifyDTO);

@@ -297,6 +297,7 @@ public class UserService {
 
     public Result updateUserInfo(UserModifyDTO userModifyDTO) {
         String token = WebUtil.getToken();
+        //token是正常的
         User user = redisUtil.getUser(token);
 
         //直接校验密码
@@ -310,7 +311,14 @@ public class UserService {
 
         //更新用户信息
         userModifyDTO.setId(user.getId());
+        //修改之前，用户的新密码要记得哈希
+        String newHashedPwd= HashUtil.hash(userModifyDTO.getNewPassword());
+        userModifyDTO.setNewPassword(newHashedPwd);
         userMapper.updateUserInfo(userModifyDTO);
+        //修改后还得更新redis
+        user.setUsername(userModifyDTO.getUsername() == null || userModifyDTO.getUsername().isEmpty() ? user.getUsername() : userModifyDTO.getUsername());
+        user.setAvatar(userModifyDTO.getAvatar() == null || userModifyDTO.getAvatar().isEmpty() ? user.getAvatar() : userModifyDTO.getAvatar());
+        user.setPassword(userModifyDTO.getNewPassword() == null || userModifyDTO.getNewPassword().isEmpty() ? user.getPassword() : newHashedPwd);
         return Result.success("修改用户信息成功！", null);
     }
 }
