@@ -7,7 +7,6 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.constant.ErrorType;
-import me.wjz.creeperhub.controller.UserController;
 import me.wjz.creeperhub.dto.UserDTO;
 import me.wjz.creeperhub.dto.UserModifyDTO;
 import me.wjz.creeperhub.entity.Result;
@@ -44,6 +43,8 @@ public class UserService {
     @Autowired
     private RedisUtil redisUtil;
     public static final String LOGIN_ATTEMPT_LIMIT = "login_attempt_limit:";
+    public static final int LOCK_EXPIRE = 5;//锁默认五秒过期
+    public static final String LOCK_GET_USER = "lock:get_user:";
     @Value("${app.login.attempt-limit}")
     private int MAX_LOGIN_ATTEMPTS;
     @Value("${app.login.attempt-limit-expire-time}")
@@ -281,12 +282,33 @@ public class UserService {
         if (!map.isEmpty()) {
             user = User.fromMap(map);
             return Result.success("获取用户信息成功！", UserDTO.fromUser(user));
+        }
+
+        //下面就说明redis中没有，要去数据库查
+
+        //如果这个接口被高频访问且缓存失效，应该用分布式锁保证只有一个线程访问数据库
+
+        if (redisService.setIfAbsent(LOCK_GET_USER + id, 1, LOCK_EXPIRE)) {
+            //获得了锁
+            try {
+                System.out.println("获得锁，查询数据库");
+                user = userMapper.findById(id);
+                if (user == null) throw new CreeperException(ErrorType.USER_NOT_FOUND);
+                redisService.setMap("user:" + id, user.toMap());
+                redisService.expire("user:" + id, 60 * 60 * 24 * 30, TimeUnit.SECONDS);
+                return Result.success("获取用户信息成功！", UserDTO.fromUser(user));
+            } finally {
+                redisService.delete(LOCK_GET_USER);
+            }
         } else {
-            user = userMapper.findById(id);
-            if (user == null) throw new CreeperException(ErrorType.USER_NOT_FOUND);
-            redisService.setMap("user:" + id, user.toMap());
-            redisService.expire("user:" + id, 60 * 60 * 24 * 30, TimeUnit.SECONDS);
-            return Result.success("获取用户信息成功！", UserDTO.fromUser(user));
+            try {
+                Thread.sleep(50);
+                System.out.println(Thread.currentThread().getId()+"尝试重试");
+                return getUserInfo(id);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return getUserInfo(id);
+            }
         }
 
     }
@@ -312,7 +334,7 @@ public class UserService {
         //更新用户信息
         userModifyDTO.setId(user.getId());
         //修改之前，用户的新密码要记得哈希
-        String newHashedPwd= HashUtil.hash(userModifyDTO.getNewPassword());
+        String newHashedPwd = HashUtil.hash(userModifyDTO.getNewPassword());
         userModifyDTO.setNewPassword(newHashedPwd);
         userMapper.updateUserInfo(userModifyDTO);
         //修改后还得更新redis

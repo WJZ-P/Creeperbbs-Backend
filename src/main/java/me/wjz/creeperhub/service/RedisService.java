@@ -13,6 +13,8 @@ public class RedisService {
     private RedisTemplate<String,String> stringRedisTemplate;
     @Autowired
     private RedisTemplate<String, Map<String,Object>> mapRedisTemplate;
+    @Autowired
+    private RedisTemplate<String, Long> longRedisTemplate;
     public void set(String key, String value) {
         stringRedisTemplate.opsForValue().set(key,value);
     }
@@ -31,5 +33,9 @@ public class RedisService {
     }
     public void expire(String key, long amount, TimeUnit timeUnit) {
         stringRedisTemplate.expire(key,amount,timeUnit);
+    }
+
+    public boolean setIfAbsent(String key, long value,long expireSecond) {
+        return longRedisTemplate.opsForValue().setIfAbsent(key,value,expireSecond,TimeUnit.SECONDS);
     }
 }
