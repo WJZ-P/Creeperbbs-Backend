@@ -276,7 +276,7 @@ public class UserService {
             throw new CreeperException(ErrorType.USER_NOT_FOUND);
         }
 
-        User user = null;
+        User user;
         //先从redis中查
         Map<Object, Object> map = redisService.getMap("user:" + id);
         if (!map.isEmpty()) {
@@ -284,33 +284,25 @@ public class UserService {
             return Result.success("获取用户信息成功！", UserDTO.fromUser(user));
         }
 
-        //下面就说明redis中没有，要去数据库查
+        //下面就说明redis中没有，要去数据库查creeperbbs-Backend
 
         //如果这个接口被高频访问且缓存失效，应该用分布式锁保证只有一个线程访问数据库
-
-        if (redisService.setIfAbsent(LOCK_GET_USER + id, 1, LOCK_EXPIRE)) {
-            //获得了锁
-            try {
-                System.out.println("获得锁，查询数据库");
-                user = userMapper.findById(id);
-                if (user == null) throw new CreeperException(ErrorType.USER_NOT_FOUND);
-                redisService.setMap("user:" + id, user.toMap());
-                redisService.expire("user:" + id, 60 * 60 * 24 * 30, TimeUnit.SECONDS);
-                return Result.success("获取用户信息成功！", UserDTO.fromUser(user));
-            } finally {
-                redisService.delete(LOCK_GET_USER);
+        return redisUtil.executeWithLock(LOCK_GET_USER + id, LOCK_EXPIRE, () -> {
+            //双重校验
+            User checkUser = null;
+            Map<Object, Object> checkMap = redisService.getMap("user:" + id);
+            if (!checkMap.isEmpty()) {
+                checkUser = User.fromMap(checkMap);
+                return Result.success("获取用户信息成功！", UserDTO.fromUser(checkUser));
             }
-        } else {
-            try {
-                Thread.sleep(50);
-                System.out.println(Thread.currentThread().getId()+"尝试重试");
-                return getUserInfo(id);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return getUserInfo(id);
-            }
-        }
 
+            System.out.println("获得锁，查询数据库");
+            checkUser = userMapper.findById(id);
+            if (checkUser == null) throw new CreeperException(ErrorType.USER_NOT_FOUND);
+            redisService.setMap("user:" + id, checkUser.toMap());
+            redisService.expire("user:" + id, 60 * 60 * 24 * 30, TimeUnit.SECONDS);
+            return Result.success("获取用户信息成功！", UserDTO.fromUser(checkUser));
+        });
     }
 
     public List<Long> getAllUserIds() {
@@ -343,4 +335,5 @@ public class UserService {
         user.setPassword(userModifyDTO.getNewPassword() == null || userModifyDTO.getNewPassword().isEmpty() ? user.getPassword() : newHashedPwd);
         return Result.success("修改用户信息成功！", null);
     }
+
 }
