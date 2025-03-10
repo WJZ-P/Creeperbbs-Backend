@@ -5,19 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
 @Data
-public class Post {
+public class Comment {
     private Long id;
+    private Long postId;
     private Long userId;
-    private int categoryId;
-    private String title;
+    private Long parentCommentId;
     private String content;
-    private int status;
-    private int viewCount;
-    private int commentCount;
-    private int likeCount;
-    private int isDeleted;
+    private Integer likeCount;
+    private Integer status;//0删除，1正常
     private Long createTime;
-    private Long updateTime;
 
     public String toJson(){
         ObjectMapper objectMapper=new ObjectMapper();

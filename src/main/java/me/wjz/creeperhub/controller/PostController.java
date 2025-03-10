@@ -1,5 +1,6 @@
 package me.wjz.creeperhub.controller;
 
+import me.wjz.creeperhub.entity.Comment;
 import me.wjz.creeperhub.entity.CreeperResponseEntity;
 import me.wjz.creeperhub.entity.Post;
 import me.wjz.creeperhub.service.PostService;
@@ -33,5 +34,10 @@ public class PostController {
     // post/{id}这种就是 用 @PathVariable
     public CreeperResponseEntity getPost(@RequestParam(required = false) Long id) {
         return new CreeperResponseEntity(postService.getPost(id));
+    }
+
+    @PostMapping("/post/comment")
+    public CreeperResponseEntity comment(@RequestBody Comment comment) {
+        return new CreeperResponseEntity(postService.sendComment(comment));
     }
 }

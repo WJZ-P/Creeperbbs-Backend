@@ -1,6 +1,7 @@
 package me.wjz.creeperhub.utils;
 
 import me.wjz.creeperhub.constant.ErrorType;
+import me.wjz.creeperhub.entity.Post;
 import me.wjz.creeperhub.entity.User;
 import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.service.RedisService;
@@ -25,7 +26,7 @@ public class RedisUtil {
 
     public <T> T executeWithLock(String key, int expireTime, Callable<T> callable) {
         while (true) {
-            if (redisService.setIfAbsent("lock:"+key, 1, expireTime)) {
+            if (redisService.setIfAbsent("lock:" + key, 1, expireTime)) {
                 try {
                     return callable.call();
                 } catch (Exception e) {
@@ -43,5 +44,10 @@ public class RedisUtil {
                 }
             }
         }
+    }
+
+    public Post getPost(String key) {
+        String json = redisService.getString(key);
+
     }
 }

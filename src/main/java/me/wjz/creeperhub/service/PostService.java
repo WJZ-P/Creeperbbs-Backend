@@ -5,6 +5,7 @@ import com.google.common.hash.Funnels;
 import jakarta.annotation.PostConstruct;
 import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.constant.PostCategoryType;
+import me.wjz.creeperhub.entity.Comment;
 import me.wjz.creeperhub.entity.Post;
 import me.wjz.creeperhub.entity.Result;
 import me.wjz.creeperhub.entity.User;
@@ -42,15 +43,15 @@ public class PostService {
     }
 
     public Result releasePost(Post post) {//发布帖子
+        User user=redisUtil.getUser(WebUtil.getToken());
         //先做速率控制
-        String redisKey = POST_RATE + WebUtil.getClientIp();
+        String redisKey = POST_RATE + user.getUsername();
         long count = redisService.increase(redisKey, 1);//记录数量
         if (count == 1) //说明是第一次尝试
             redisService.expire(redisKey, POST_RATE_EXPIRE_TIME, TimeUnit.SECONDS);
         else if (count > MAX_POST_RATE) return Result.error(ErrorType.TOO_MANY_REQUESTS);
 
         //下面准备发布帖子
-        User user = redisUtil.getUser(WebUtil.getToken());
         post.setUserId(user.getId());
         post.setCreateTime(System.currentTimeMillis());
         postMapper.insertPost(post);
@@ -87,7 +88,14 @@ public class PostService {
     public Result getPost(Long id) {
         //检查id是否大于最大值
         if (id == null || id > maxPostId) return Result.error(ErrorType.PARAMS_ERROR);
+        //先看缓存中有没有帖子
+        Post post = redisUtil.getPost(id);
+
         Post post = postMapper.getPostById(id);
         return Result.success("请求成功", post);
+    }
+
+    public Result sendComment(Comment comment) {
+        //发送评论
     }
 }
