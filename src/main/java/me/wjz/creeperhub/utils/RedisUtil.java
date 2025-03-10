@@ -25,7 +25,7 @@ public class RedisUtil {
 
     public <T> T executeWithLock(String key, int expireTime, Callable<T> callable) {
         while (true) {
-            if (redisService.setIfAbsent(key, 1, expireTime)) {
+            if (redisService.setIfAbsent("lock:"+key, 1, expireTime)) {
                 try {
                     return callable.call();
                 } catch (Exception e) {

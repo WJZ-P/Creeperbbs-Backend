@@ -11,4 +11,8 @@ public class PostCategoryType {
     public static final int SERVER = 8;//服务器
     public static final int DISCUSSION = 9;//闲谈
     public static final int BUG = 10;//bug
+
+    public static int[] getAll() {
+        return new int[]{BUILDING, SURVIVAL, RED_STONE, MOD, PLUGIN, RESOURCE, RESOURCE_PACK, SERVER, DISCUSSION, BUG};
+    }
 }

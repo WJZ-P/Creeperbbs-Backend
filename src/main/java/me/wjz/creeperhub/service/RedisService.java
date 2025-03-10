@@ -1,6 +1,7 @@
 package me.wjz.creeperhub.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,13 +16,20 @@ public class RedisService {
     private RedisTemplate<String, Map<String,Object>> mapRedisTemplate;
     @Autowired
     private RedisTemplate<String, Long> longRedisTemplate;
+    @Autowired
+    private RedisTemplate<String, Integer> integerRedisTemplate;
     public void set(String key, String value) {
         stringRedisTemplate.opsForValue().set(key,value);
+    }
+    public void set(String key, Integer value) {
+        integerRedisTemplate.opsForValue().set(key,value);
     }
     public String getString(String key) {
         return stringRedisTemplate.opsForValue().get(key);
     }
-
+    public Integer getInteger(String key) {
+        return integerRedisTemplate.opsForValue().get(key);
+    }
     public Map<Object, Object> getMap(String key) {
         return mapRedisTemplate.opsForHash().entries(key);
     }

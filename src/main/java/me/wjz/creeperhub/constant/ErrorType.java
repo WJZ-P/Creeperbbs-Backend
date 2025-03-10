@@ -28,7 +28,8 @@ public enum ErrorType {
     TOKEN_UNMATCHED(HttpStatus.BAD_REQUEST, 10017, "Token不匹配"),
     ORIGINAL_PASSWORD_ERROR(HttpStatus.BAD_REQUEST, 10018, "原密码错误"),
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, 10019, "请求次数过多，请稍后再试!"),
-    MAX_ITEMS_PER_PAGE_EXCEEDED(HttpStatus.BAD_REQUEST, 10020, "每页最多只能显示50条数据!");
+    MAX_ITEMS_PER_PAGE_EXCEEDED(HttpStatus.BAD_REQUEST, 10020, "每页最多只能显示50条数据!"),
+    PARAMS_ERROR(HttpStatus.BAD_REQUEST, 10021, "参数错误!");
     private final HttpStatus status; //  状态码枚举，类型为 HttpStatus
     private final int code;
     private final String message;

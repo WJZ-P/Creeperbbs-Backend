@@ -32,8 +32,28 @@ public class RedisConfig {
         return template;
     }
     @Bean
-    public RedisTemplate<String, Long> LongRedisTemplate(RedisConnectionFactory factory) {
+    public RedisTemplate<String, Long> longRedisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Long> template = new RedisTemplate<>();
+        template.setConnectionFactory(factory);
+
+        // Key 序列化器还是用 StringRedisSerializer 喵！
+        template.setKeySerializer(new StringRedisSerializer());
+
+        //  重点！ Value 序列化器换成 GenericJackson2JsonRedisSerializer 喵！
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        //  Hash 的 Key 序列化器也用 StringRedisSerializer 喵！
+        template.setHashKeySerializer(new StringRedisSerializer());
+
+        //  Hash 的 Value 序列化器也换成 GenericJackson2JsonRedisSerializer 喵！  这样 Hash 存啥类型的值都行啦喵！
+        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+
+        template.afterPropertiesSet();
+        return template;
+    }
+    @Bean
+    public RedisTemplate<String, Integer> integerRedisTemplate(RedisConnectionFactory factory) {
+        RedisTemplate<String, Integer> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
 
         // Key 序列化器还是用 StringRedisSerializer 喵！
