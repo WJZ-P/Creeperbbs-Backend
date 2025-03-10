@@ -5,10 +5,15 @@ import lombok.Data;
 @Data
 public class Post {
     private Long id;
-    private String title;
     private Long userId;
+    private int categoryId;
+    private String title;
     private String content;
-    private Short status;
+    private int status;
     private int viewCount;
     private int commentCount;
+    private int likeCount;
+    private int isDeleted;
+    private Long createTime;
+    private Long updateTime;
 }

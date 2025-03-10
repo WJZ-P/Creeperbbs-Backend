@@ -1,6 +1,7 @@
 package me.wjz.creeperhub.mapper;
 
 import me.wjz.creeperhub.dto.UserModifyDTO;
+import me.wjz.creeperhub.entity.Post;
 import me.wjz.creeperhub.entity.Token;
 import me.wjz.creeperhub.entity.User;
 import org.apache.ibatis.annotations.*;
@@ -42,5 +43,6 @@ public interface UserMapper {
             "</script>"
     })
     void updateUserInfo(UserModifyDTO userModifyDTO);
+
 }
 

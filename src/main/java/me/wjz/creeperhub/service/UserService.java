@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.dto.UserDTO;
 import me.wjz.creeperhub.dto.UserModifyDTO;
+import me.wjz.creeperhub.entity.Post;
 import me.wjz.creeperhub.entity.Result;
 import me.wjz.creeperhub.entity.Token;
 import me.wjz.creeperhub.entity.User;
@@ -42,13 +43,15 @@ public class UserService {
     private RedisService redisService;
     @Autowired
     private RedisUtil redisUtil;
-    public static final String LOGIN_ATTEMPT_LIMIT = "login_attempt_limit:";
+    public static final String LOGIN_ATTEMPT_LIMIT = "rate_limit:login_attempt:";
+
     public static final int LOCK_EXPIRE = 5;//锁默认五秒过期
     public static final String LOCK_GET_USER = "lock:get_user:";
     @Value("${app.login.attempt-limit}")
     private int MAX_LOGIN_ATTEMPTS;
     @Value("${app.login.attempt-limit-expire-time}")
     private long LOGIN_ATTEMPT_EXPIRE_TIME;
+
     public BloomFilter<Long> userBloomFilter;
 
     @PostConstruct

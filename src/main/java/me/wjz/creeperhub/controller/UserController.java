@@ -4,10 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.dto.RegisterDTO;
 import me.wjz.creeperhub.dto.UserModifyDTO;
-import me.wjz.creeperhub.entity.CreeperResponseEntity;
-import me.wjz.creeperhub.entity.Result;
-import me.wjz.creeperhub.entity.Token;
-import me.wjz.creeperhub.entity.User;
+import me.wjz.creeperhub.entity.*;
 import me.wjz.creeperhub.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -55,6 +52,4 @@ public class UserController {
     public CreeperResponseEntity updateUserInfo(@RequestBody UserModifyDTO userModifyDTO) {
         return new CreeperResponseEntity(userService.updateUserInfo(userModifyDTO));
     }
-
-
 }
