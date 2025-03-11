@@ -1,5 +1,7 @@
 package me.wjz.creeperhub.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.entity.Post;
 import me.wjz.creeperhub.entity.User;
@@ -48,6 +50,12 @@ public class RedisUtil {
 
     public Post getPost(String key) {
         String json = redisService.getString(key);
-
+        if (json == null) return null;
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.readValue(json, Post.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

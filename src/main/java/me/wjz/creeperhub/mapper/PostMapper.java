@@ -1,7 +1,7 @@
 package me.wjz.creeperhub.mapper;
 
+import me.wjz.creeperhub.entity.Comment;
 import me.wjz.creeperhub.entity.Post;
-import me.wjz.creeperhub.entity.User;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -35,6 +35,10 @@ public interface PostMapper {
     Post getPostById(Long id);
     @Select("SELECT MAX(id) FROM posts")
     int getMaxPostId();
+
+    @Insert("INSERT INTO comments (post_id, user_id,parent_comment_id, content, create_time) "+
+            "VALUES (#{postId}, #{userId},#{parentCommentId}, #{content}, #{createTime})")
+    void insertComment(Comment comment);
 
     class PostSqlBuilder {
         private static final Set<String> ALLOW_SORT_FIELDS =

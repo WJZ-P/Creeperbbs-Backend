@@ -16,5 +16,8 @@ public class RandomUtil {
         }
         return sb.toString();
     }
+    public static int getRandomNumber(int range) {
+        return  random.nextInt(range);
+    }
 
 }
