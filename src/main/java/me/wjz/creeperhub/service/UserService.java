@@ -69,6 +69,9 @@ public class UserService {
                 userBloomFilter.put(id);
             }
         } else System.out.println("UserController布隆过滤器初始化失败，无user数据");
+
+        //往redis中添加最大用户数缓存
+        redisService.set("constant:max_user_id", userMapper.getMaxId().intValue());
     }
 
     public Result<Void> register(String username, String password, String email, String code) {
@@ -106,7 +109,8 @@ public class UserService {
         user.setId(userMapper.insertUser(user));
         //往布隆过滤器中添加新注册的用户ID
         userBloomFilter.put(user.getId());
-
+        //redis的用户最大id缓存+1
+        redisService.increase("constant:max_user_id", 1);
         return Result.success("注册成功！", null);
     }
 

@@ -9,6 +9,7 @@ import me.wjz.creeperhub.entity.User;
 import me.wjz.creeperhub.mapper.PostMapper;
 import me.wjz.creeperhub.utils.RandomUtil;
 import me.wjz.creeperhub.utils.RedisUtil;
+import me.wjz.creeperhub.utils.UserContent;
 import me.wjz.creeperhub.utils.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +32,7 @@ public class PostService {
     private PostMapper postMapper;
     //    public BloomFilter<Integer> postBloomFilter;
     public static final String POST_RATE = "rate_limit:post:";
-    public static final String MAX_POST_NUM = "constant:max_post_num";
+    public static final String MAX_POST_NUM = "constant:max_post_id";
     public static final String REDIS_POST_KEY = "post:";
     private int maxPostId;
 
@@ -61,6 +62,7 @@ public class PostService {
         redisService.set(MAX_POST_NUM, maxPostId);
         return Result.success("发布帖子成功！", null);
     }
+
     //getPosts暂时还没有缓存到数据库
     public Result getPosts(Long userId, String sortField, Integer categoryId, int postType, Boolean desc, int page, int size) {
         //过滤掉不存在的分类ID，防止恶意请求攻击。
@@ -99,7 +101,16 @@ public class PostService {
     }
 
     public Result sendComment(Comment comment) {
-        //发送评论
+        //校验帖子ID
+        if (comment.getPostId() == null || comment.getPostId() > maxPostId)
+            return Result.error(ErrorType.PARAMS_ERROR);
+
+        //发送评论前，comment对象的内容还是不完整的，比如userID要在这里传入
+        comment.setUserId(redisUtil.getUser(WebUtil.getToken()).getId());
+        comment.setCreateTime(System.currentTimeMillis());
+        if(comment.getParentCommentId()==null) comment.setParentCommentId((long) -1);
+        //将评论插入到数据库中
         postMapper.insertComment(comment);
+        return Result.success("评论成功", null);
     }
 }

@@ -6,9 +6,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import me.wjz.creeperhub.constant.ErrorType;
 import me.wjz.creeperhub.entity.Result;
 import me.wjz.creeperhub.entity.Token;
+import me.wjz.creeperhub.entity.User;
 import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.service.RedisService;
 import me.wjz.creeperhub.service.TokenService;
+import me.wjz.creeperhub.utils.RedisUtil;
+import me.wjz.creeperhub.utils.UserContent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -22,6 +25,8 @@ public class LoginInterceptor implements HandlerInterceptor {
     private TokenService tokenService;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private RedisUtil redisUtil;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -39,8 +44,17 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
         //更新token有效期
         redisService.expire(TokenService.TOKEN_PREFIX + token, 60 * 60 * 24 * 30, TimeUnit.SECONDS);
+        //用户信息存放在ThreadLocal内部，方便后续调用
 
+        User user = redisUtil.getUser(token);
+        UserContent.setUser(user);
         //用户存在，放行
         return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        //清除ThreadLocal中的用户信息,防止泄露内存
+        UserContent.remove();
     }
 }

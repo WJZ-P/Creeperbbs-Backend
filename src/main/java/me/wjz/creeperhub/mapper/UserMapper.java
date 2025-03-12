@@ -31,6 +31,9 @@ public interface UserMapper {
     @Select("SELECT id FROM users")
     List<Long> getAllUserIds();
 
+    @Select("Select MAX(id) from users")
+    Long getMaxId();
+
     @Update({
             "<script>",
             "UPDATE users",
