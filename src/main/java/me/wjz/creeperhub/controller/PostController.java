@@ -36,8 +36,4 @@ public class PostController {
         return new CreeperResponseEntity(postService.getPost(id));
     }
 
-    @PostMapping("/post/comment")
-    public CreeperResponseEntity comment(@RequestBody Comment comment) {
-        return new CreeperResponseEntity(postService.sendComment(comment));
-    }
 }
