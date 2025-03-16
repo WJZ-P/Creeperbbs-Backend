@@ -9,7 +9,6 @@ import me.wjz.creeperhub.mapper.PostMapper;
 import me.wjz.creeperhub.utils.RedisUtil;
 import me.wjz.creeperhub.utils.WebUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -23,8 +22,6 @@ public class CommentService {
     private RedisUtil redisUtil;
     @Autowired
     private PostMapper postMapper;
-    @Autowired
-    private KafkaTemplate kafkaTemplate;
 
     //对帖子的评论方法要添加进kafka传递给用户
     @Transactional
@@ -64,8 +61,7 @@ public class CommentService {
                     comment.getParentCommentId(),
                     comment.getContent(),
                     System.currentTimeMillis());
-            //发送消息到kafka
-            kafkaTemplate.send("comment", event);
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new CreeperException(ErrorType.UNKNOWN_ERROR);

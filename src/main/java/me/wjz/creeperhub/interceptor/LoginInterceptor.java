@@ -30,6 +30,7 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        System.out.println("登录拦截器开始校验");
         String token = null;
         Cookie[] cookies = request.getCookies();
         for (Cookie cookie : cookies) {

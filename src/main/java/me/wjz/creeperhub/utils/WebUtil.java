@@ -2,6 +2,8 @@ package me.wjz.creeperhub.utils;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import me.wjz.creeperhub.constant.ErrorType;
+import me.wjz.creeperhub.exception.CreeperException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -30,18 +32,20 @@ public class WebUtil {
 
     /**
      * 获取的是请求发起者的token
+     *
      * @return
      */
     public static String getToken() {
-        //从request里面提取token
-        String token = null;
-        Cookie[] cookies = getRequest().getCookies();
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("token")) {
-                token = cookie.getValue();
-                break;
+
+            //从request里面提取token
+            String token = null;
+            Cookie[] cookies = getRequest().getCookies();
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("token")) {
+                    token = cookie.getValue();
+                    break;
+                }
             }
-        }
-        return token;
+            return token;
     }
 }

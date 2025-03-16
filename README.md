@@ -26,3 +26,6 @@
 ### 用户信息
 用put请求更新用户信息，用get请求获取用户信息。
 同时使用布隆过滤器处理缓存穿透，用redis缓存用户信息，减轻数据库压力。
+
+![img](https://article.biliimg.com/bfs/new_dyn/83f1b88fe1e6439e5af42f2da3bae47e39684091.png)
+

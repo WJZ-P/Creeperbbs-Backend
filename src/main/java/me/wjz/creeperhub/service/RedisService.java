@@ -2,6 +2,7 @@ package me.wjz.creeperhub.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -42,8 +43,13 @@ public class RedisService {
     public void expire(String key, long amount, TimeUnit timeUnit) {
         stringRedisTemplate.expire(key,amount,timeUnit);
     }
-
     public boolean setIfAbsent(String key, long value,long expireSecond) {
         return longRedisTemplate.opsForValue().setIfAbsent(key,value,expireSecond,TimeUnit.SECONDS);
+    }
+    public void addSet(String key, String value) {
+        stringRedisTemplate.opsForSet().add(key,value);
+    }
+    public void deleteSet(String key, String value) {
+        stringRedisTemplate.opsForSet().remove(key,value);
     }
 }

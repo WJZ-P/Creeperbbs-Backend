@@ -19,6 +19,8 @@ public class RedisUtil {
     @Autowired
     private RedisService redisService;
 
+    public static final String WEB_SOCKET_SESSION_KEY = "websocket:sessions";
+
     public User getUser(String token) {
         Map<Object, Object> map = redisService.getMap("token:" + token);
         String userId = String.valueOf(map.get("userId"));
@@ -58,4 +60,27 @@ public class RedisUtil {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * 添加会话ID到Redis
+     * @param sessionId WebSocket会话的ID
+     */
+    public void addSession(String sessionId) {
+        if (sessionId != null && !sessionId.isEmpty()) {
+            redisService.addSet(WEB_SOCKET_SESSION_KEY, sessionId);
+            System.out.println("会话存入Redis，会话ID：" + sessionId);
+        }
+    }
+    /**
+     * 从Redis移除会话ID
+     * @param sessionId WebSocket会话的ID
+     */
+    public void removeSession(String sessionId) {
+        if (sessionId != null && !sessionId.isEmpty()) {
+            redisService.deleteSet(WEB_SOCKET_SESSION_KEY, sessionId);
+            System.out.println("会话从Redis移除，会话ID：" + sessionId);
+        }
+    }
+
+
 }
