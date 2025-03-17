@@ -1,8 +1,6 @@
 package me.wjz.creeperhub.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +32,12 @@ public class RedisService {
     public Map<Object, Object> getMap(String key) {
         return mapRedisTemplate.opsForHash().entries(key);
     }
-    public void setMap(String key, Map<String,?> map) {mapRedisTemplate.opsForHash().putAll(key,map);}
+    public void putMap(String key, Map<String,?> map) {mapRedisTemplate.opsForHash().putAll(key,map);}
+    public void removeMap(String key, String hashKey) {mapRedisTemplate.opsForHash().delete(key,hashKey);}
+    public void removeMap(String key, Long hashKey) {mapRedisTemplate.opsForHash().delete(key,hashKey);}
+    public Object getMapValue(String key, String hashKey) {
+        return mapRedisTemplate.opsForHash().get(key,hashKey);
+    }
     public void delete(String key) { stringRedisTemplate.delete(key);}
     public boolean hasKey(String key) {return stringRedisTemplate.hasKey(key);}
     public long increase(String key,int delta) {
@@ -49,7 +52,8 @@ public class RedisService {
     public void addSet(String key, String value) {
         stringRedisTemplate.opsForSet().add(key,value);
     }
-    public void deleteSet(String key, String value) {
+    public void removeSetElement(String key, String value) {
         stringRedisTemplate.opsForSet().remove(key,value);
     }
+
 }

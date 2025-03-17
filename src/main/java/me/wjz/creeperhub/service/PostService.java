@@ -100,5 +100,7 @@ public class PostService {
         return Result.success("请求成功", post);
     }
 
-
+    public Long getUserIdByPostId(Long postId) {
+        return postMapper.getUserIdByPostId(postId);
+    }
 }

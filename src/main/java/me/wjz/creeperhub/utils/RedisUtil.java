@@ -8,8 +8,10 @@ import me.wjz.creeperhub.entity.User;
 import me.wjz.creeperhub.exception.CreeperException;
 import me.wjz.creeperhub.service.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -18,8 +20,10 @@ import java.util.concurrent.Callable;
 public class RedisUtil {
     @Autowired
     private RedisService redisService;
-
-    public static final String WEB_SOCKET_SESSION_KEY = "websocket:sessions";
+    @Value("${server.public-ip}")
+    private String publicIp;
+    public static final String WEBSOCKET_USERID_TO_SESSION_KEY = "websocket:users_session";
+    public static final String WEBSOCKET_SESSION_TO_IP_KEY = "websocket:sessions_ip";
 
     public User getUser(String token) {
         Map<Object, Object> map = redisService.getMap("token:" + token);
@@ -63,24 +67,39 @@ public class RedisUtil {
 
     /**
      * 添加会话ID到Redis
+     *
      * @param sessionId WebSocket会话的ID
      */
-    public void addSession(String sessionId) {
+    public void addSession(Long userId, String sessionId) {
         if (sessionId != null && !sessionId.isEmpty()) {
-            redisService.addSet(WEB_SOCKET_SESSION_KEY, sessionId);
-            System.out.println("会话存入Redis，会话ID：" + sessionId);
+            //这里应该用hash存储，因为方便根据用户ID获取对应的sessionId。
+            Map<String, String> map = new HashMap<>();
+            map.put(String.valueOf(userId), sessionId);
+            redisService.putMap(WEBSOCKET_USERID_TO_SESSION_KEY, map);
+            System.out.println("会话存入Redis，用户与会话ID：" + userId + ":" + sessionId);
+
+            //同时存储一份sessionID和服务器IP的映射
+            map.clear();
+            map.put(sessionId, publicIp);
+            redisService.putMap(WEBSOCKET_SESSION_TO_IP_KEY, map);
         }
     }
+
     /**
      * 从Redis移除会话ID
+     *
      * @param sessionId WebSocket会话的ID
      */
-    public void removeSession(String sessionId) {
+    public void removeSession(Long userId, String sessionId) {
         if (sessionId != null && !sessionId.isEmpty()) {
-            redisService.deleteSet(WEB_SOCKET_SESSION_KEY, sessionId);
+            redisService.removeMap(WEBSOCKET_USERID_TO_SESSION_KEY, String.valueOf(userId));
             System.out.println("会话从Redis移除，会话ID：" + sessionId);
+            //同时删掉session到Ip的映射。
+            redisService.removeMap(WEBSOCKET_SESSION_TO_IP_KEY, sessionId);
         }
     }
 
-
+    public String getSessionId(Long userId) {
+        return (String) redisService.getMapValue(WEBSOCKET_USERID_TO_SESSION_KEY, String.valueOf(userId));
+    }
 }

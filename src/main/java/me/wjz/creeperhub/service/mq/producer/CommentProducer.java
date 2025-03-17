@@ -15,7 +15,9 @@ public class CommentProducer {
     public static final String COMMENT_TOPIC = "comment-topic";
 
     public void sendCommentEvent(Comment comment) {
+        //这个commentEvent就是发给前端的消息了
         CommentEvent commentEvent = new CommentEvent(comment);
+
         rocketMQTemplate.sendMessageInTransaction(COMMENT_TOPIC, MessageBuilder.withPayload(commentEvent)
                 .setHeader(RocketMQHeaders.KEYS, comment.getId()).build(), comment);
     }

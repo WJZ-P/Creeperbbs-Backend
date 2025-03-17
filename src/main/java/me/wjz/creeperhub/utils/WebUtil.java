@@ -48,4 +48,17 @@ public class WebUtil {
             }
             return token;
     }
+
+    public static String getWsSession(){
+        //从request里面提取token
+        String session = null;
+        Cookie[] cookies = getRequest().getCookies();
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("ws-session")) {
+                session = cookie.getValue();
+                break;
+            }
+        }
+        return session;
+    }
 }

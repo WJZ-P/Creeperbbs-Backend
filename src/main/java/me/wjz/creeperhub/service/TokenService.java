@@ -14,7 +14,7 @@ public class TokenService {
 
     public void setToken(Token token) {
         String key = TOKEN_PREFIX + token.getToken();
-        redisService.setMap(key, token.toMap());
+        redisService.putMap(key, token.toMap());
         redisService.expire(key, 60 * 60 * 24 * 30, TimeUnit.SECONDS);
     }
 

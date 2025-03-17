@@ -9,6 +9,7 @@ public class Comment {
     private Long id;
     private Long postId;
     private Long userId;
+    private Long targetUserId;//评论的目标用户ID
     private Long parentCommentId;
     private String content;
     private Integer likeCount;

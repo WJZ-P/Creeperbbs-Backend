@@ -240,7 +240,7 @@ public class UserService {
         //token设置到HTTP-only的cookie中
         Cookie cookie = new Cookie("token", token.getToken());
         cookie.setHttpOnly(true);
-        //cookie.setSecure(true);//https传输
+        cookie.setSecure(true);//https环境下才传输cookie
         cookie.setMaxAge(60 * 60 * 24 * 30);//30天
         cookie.setPath("/");//作用于整个域名
         response.addCookie(cookie);
@@ -254,7 +254,7 @@ public class UserService {
         tokenService.setToken(token);
 
         //user也缓存一份到redis中
-        redisService.setMap("user:" + targetUser.getId(), targetUser.toMap());
+        redisService.putMap("user:" + targetUser.getId(), targetUser.toMap());
         redisService.expire("user:" + targetUser.getId(), 60 * 60 * 24 * 30, TimeUnit.SECONDS);
         return Result.success("登录成功！", null);
     }
@@ -307,7 +307,7 @@ public class UserService {
             System.out.println("获得锁，查询数据库");
             checkUser = userMapper.findById(id);
             if (checkUser == null) throw new CreeperException(ErrorType.USER_NOT_FOUND);
-            redisService.setMap("user:" + id, checkUser.toMap());
+            redisService.putMap("user:" + id, checkUser.toMap());
             redisService.expire("user:" + id, 60 * 60 * 24 * 30, TimeUnit.SECONDS);
             return Result.success("获取用户信息成功！", UserDTO.fromUser(checkUser));
         });

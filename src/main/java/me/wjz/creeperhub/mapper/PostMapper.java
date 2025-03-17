@@ -40,6 +40,9 @@ public interface PostMapper {
             "VALUES (#{postId}, #{userId},#{parentCommentId}, #{content}, #{createTime})")
     void insertComment(Comment comment);
 
+    @Select("SELECT user_id FROM posts WHERE id = #{postId}")
+    Long getUserIdByPostId(Long postId);
+
     class PostSqlBuilder {
         private static final Set<String> ALLOW_SORT_FIELDS =
                 Set.of("create_time", "like_count", "comment_count");
