@@ -1,5 +1,7 @@
 package me.wjz.creeperhub.controller;
 
+import me.wjz.creeperhub.entity.CreeperResponseEntity;
+import me.wjz.creeperhub.entity.Result;
 import me.wjz.creeperhub.event.CommentEvent;
 import me.wjz.creeperhub.utils.WebSocketSessionManager;
 import me.wjz.creeperhub.utils.WebUtil;
@@ -18,7 +20,7 @@ public class WebSocketForwardController {
     private WebSocketSessionManager webSocketSessionManager;
 
     @PostMapping("/forward/comment")
-    public void forwardMessage(@RequestBody CommentEvent commentEvent) {
+    public CreeperResponseEntity forwardMessage(@RequestBody CommentEvent commentEvent) {
         String sessionId = WebUtil.getWsSession();
 
         WebSocketSession session = webSocketSessionManager.getSession(sessionId);
@@ -33,6 +35,7 @@ public class WebSocketForwardController {
         } else {
             System.out.println("会话不存在或已关闭: sessionId=" + sessionId);
         }
+        return new CreeperResponseEntity(Result.success("发送成功", commentEvent));
     }
 }
 

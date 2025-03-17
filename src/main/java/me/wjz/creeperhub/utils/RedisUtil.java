@@ -102,4 +102,8 @@ public class RedisUtil {
     public String getSessionId(Long userId) {
         return (String) redisService.getMapValue(WEBSOCKET_USERID_TO_SESSION_KEY, String.valueOf(userId));
     }
+
+    public String getServerIpBySessionId(String sessionId) {
+        return (String) redisService.getMapValue(WEBSOCKET_SESSION_TO_IP_KEY, sessionId);
+    }
 }
