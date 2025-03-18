@@ -36,8 +36,8 @@ public interface PostMapper {
     @Select("SELECT MAX(id) FROM posts")
     int getMaxPostId();
 
-    @Insert("INSERT INTO comments (post_id, user_id,parent_comment_id, content, create_time) "+
-            "VALUES (#{postId}, #{userId},#{parentCommentId}, #{content}, #{createTime})")
+    @Insert("INSERT INTO comments (id,post_id, user_id,parent_comment_id, content, create_time) "+
+            "VALUES (#{id},#{postId}, #{userId},#{parentCommentId}, #{content}, #{createTime})")
     void insertComment(Comment comment);
 
     @Select("SELECT user_id FROM posts WHERE id = #{postId}")

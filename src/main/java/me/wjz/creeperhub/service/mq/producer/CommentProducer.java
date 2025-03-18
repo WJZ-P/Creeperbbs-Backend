@@ -17,8 +17,8 @@ public class CommentProducer {
     public void sendCommentEvent(Comment comment) {
         //这个commentEvent就是发给前端的消息了
         CommentEvent commentEvent = new CommentEvent(comment);
-
-        rocketMQTemplate.sendMessageInTransaction(COMMENT_TOPIC, MessageBuilder.withPayload(commentEvent)
-                .setHeader(RocketMQHeaders.KEYS, comment.getId()).build(), comment);
+        System.out.println("生产者发送评论事件");
+        rocketMQTemplate.send(COMMENT_TOPIC, MessageBuilder.withPayload(commentEvent.toJson())
+                .setHeader(RocketMQHeaders.KEYS, comment.getId()).build());
     }
 }

@@ -1,7 +1,9 @@
 package me.wjz.creeperhub.utils;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class SnowFlake {
     /**
      * 分布式ID生成器（雪花算法改进版）

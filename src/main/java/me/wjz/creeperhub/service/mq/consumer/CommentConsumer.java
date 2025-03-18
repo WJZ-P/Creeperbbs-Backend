@@ -21,6 +21,7 @@ public class CommentConsumer implements RocketMQListener<CommentEvent> {
     private NotificationWebSocketHandler notificationWebSocketHandler;
     @Override
     public void onMessage(CommentEvent commentEvent) {
+        System.out.println("消费者收到评论事件消息");
         //通过webSocket推送消息
         notificationWebSocketHandler.sendCommentNotification(commentEvent);
     }
