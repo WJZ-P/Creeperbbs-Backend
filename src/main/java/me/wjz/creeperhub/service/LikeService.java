@@ -28,7 +28,8 @@ public class LikeService {
     private RocketMQTemplate rocketMQTemplate;
     @Autowired
     private RedisUtil redisUtil;
-    private static final String LIKE_KEY_PREFIX = "like:";
+    private static final String LIKE_KEY_PREFIX = "like_record";
+    public static final String LIKE_TOPIC = "like-topic";
 
     //处理点赞
     @Transactional
@@ -37,8 +38,8 @@ public class LikeService {
         User user = redisUtil.getUser(WebUtil.getToken());
         if (user == null) return Result.error(ErrorType.UNKNOWN_ERROR);
         likeDTO.setUserId(user.getId());
+        likeDTO.setCreateTime(System.currentTimeMillis());
 
-        String redisKey = LIKE_KEY_PREFIX + likeDTO.getTargetType() + ":" + likeDTO.getTargetId();
         //like:post:2
         //用set存储点赞的用户ID，原子性保障
         String luaScript = "if redis.call('SADD', KEYS[1], ARGV[1]) == 1 then " +
@@ -49,20 +50,10 @@ public class LikeService {
                 "end";
         //执行lua脚本，返回1表示点赞成功
         Long result = redisService.execute(new DefaultRedisScript<>(luaScript, Long.class),
-                List.of(redisKey),
-                likeDTO.getUserId().toString());
+                List.of(LIKE_KEY_PREFIX),
+                JsonUtil.toJson(likeDTO));
 
         if (result == 1) {
-            // 发送RocketMQ事务消息（半消息机制防止丢失）
-            Message<String> message = MessageBuilder
-                    .withPayload(JsonUtil.toJson(likeDTO))
-                    .setHeader(RocketMQHeaders.KEYS, redisKey)
-                    .build();
-            rocketMQTemplate.sendMessageInTransaction(
-                    "like-topic",
-                    message,
-                    null
-            );
             return Result.success("点赞成功！", null);
         } else {
             throw new CreeperException(ErrorType.DOUBLE_LIKE);

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="me.wjz.creeperhub.mapper.LikeMapper">
+
+    <!-- 批量插入点赞记录 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO likes (user_id, target_type, target_id, create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId}, #{item.targetType}, #{item.targetId}, #{item.createTime})
+        </foreach>
+        <!-- 避免重复插入 -->
+        ON DUPLICATE KEY UPDATE
+        id = id <!-- 若主键冲突则忽略 -->
+    </insert>
+</mapper>
