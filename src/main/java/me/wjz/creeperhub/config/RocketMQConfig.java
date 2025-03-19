@@ -15,16 +15,16 @@ public class RocketMQConfig {
     private String producerGroup;
 
     @Bean
-    public RocketMQTemplate rocketMQTemplate(DefaultMQProducer producer) {
-        RocketMQTemplate template = new RocketMQTemplate();
-        template.setProducer(producer);
-        return template;
-    }
-
-    @Bean
     public DefaultMQProducer mqProducer() {
         DefaultMQProducer producer = new TransactionMQProducer(producerGroup);
         producer.setNamesrvAddr(nameServer);
         return producer;
+    }
+
+    @Bean
+    public RocketMQTemplate rocketMQTemplate(DefaultMQProducer mqProducer) {
+        RocketMQTemplate template = new RocketMQTemplate();
+        template.setProducer(mqProducer);
+        return template;
     }
 }

@@ -18,6 +18,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns("api/user/register",
                         "api/user/login",
                         "/api/user/send_register_email",
+                        "",
                         "/ws/notifications",
                         "/ws/**");
     }

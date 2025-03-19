@@ -2,8 +2,10 @@ package me.wjz.creeperhub.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -56,4 +58,7 @@ public class RedisService {
         stringRedisTemplate.opsForSet().remove(key,value);
     }
 
+    public Long execute(DefaultRedisScript<Long> longDefaultRedisScript, List<String> redisKey, String string) {
+        return stringRedisTemplate.execute(longDefaultRedisScript,redisKey,string);
+    }
 }

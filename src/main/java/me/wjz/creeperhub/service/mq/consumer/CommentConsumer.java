@@ -11,18 +11,19 @@ import org.springframework.stereotype.Service;
 
 @RocketMQMessageListener(
         topic = CommentProducer.COMMENT_TOPIC,
-        consumerGroup = "comment-consumer-group",
-        selectorType = SelectorType.TAG,
-        selectorExpression = "notify"
+        consumerGroup = "comment-consumer-group"
+//        selectorType = SelectorType.TAG,
+//        selectorExpression = "notify"
 )
 @Service
-public class CommentConsumer implements RocketMQListener<CommentEvent> {
+public class CommentConsumer implements RocketMQListener<String> {
     @Autowired
     private NotificationWebSocketHandler notificationWebSocketHandler;
+
     @Override
-    public void onMessage(CommentEvent commentEvent) {
-        System.out.println("消费者收到评论事件消息");
+    public void onMessage(String commentEventJson) {
+        System.out.println("消费者收到评论事件消息"+commentEventJson);
         //通过webSocket推送消息
-        notificationWebSocketHandler.sendCommentNotification(commentEvent);
+        notificationWebSocketHandler.sendCommentNotification(CommentEvent.fromJson(commentEventJson));
     }
 }
