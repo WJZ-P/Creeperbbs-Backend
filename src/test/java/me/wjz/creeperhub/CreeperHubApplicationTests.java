@@ -7,11 +7,5 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class CreeperHubApplicationTests {
-    @Autowired
-    private EmailService emailService;
-
-    @Test
-    void testSendEmail() {
-    }
 
 }

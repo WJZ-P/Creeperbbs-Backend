@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 public class SnowFlake {
     /**
      * 分布式ID生成器（雪花算法改进版）
-     * 结构：符号位(1) + 时间戳(41) + 数据中心ID(5) + 机器ID(5) + 序列号(12)
+     * 结构：符号位(1) + 时间戳(41) + 数据中心ID(5) + 机器ID(5) + 序列号(12)=64位
      * 支持时钟回拨检测和有限等待
      */
     private static final long EPOCH = 1735660800000L; // 2025-01-01 00:00:00
