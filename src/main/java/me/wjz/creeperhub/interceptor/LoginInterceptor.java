@@ -33,6 +33,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         System.out.println("登录拦截器开始校验");
         String token = null;
         Cookie[] cookies = request.getCookies();
+        if(cookies==null) throw new CreeperException(Result.error(ErrorType.UN_LOGIN));
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("token")) {
                 token = cookie.getValue();

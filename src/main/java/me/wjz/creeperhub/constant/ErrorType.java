@@ -30,7 +30,10 @@ public enum ErrorType {
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, 10019, "请求次数过多，请稍后再试!"),
     MAX_ITEMS_PER_PAGE_EXCEEDED(HttpStatus.BAD_REQUEST, 10020, "每页最多只能显示50条数据!"),
     PARAMS_ERROR(HttpStatus.BAD_REQUEST, 10021, "参数错误!"),
-    DOUBLE_LIKE( HttpStatus.BAD_REQUEST, 10022, "不能重复点赞!");
+    DOUBLE_LIKE( HttpStatus.BAD_REQUEST, 10022, "不能重复点赞!"),
+    NOT_START(HttpStatus.BAD_REQUEST, 10023, "活动未开始!"),
+    ALREADY_END(HttpStatus.BAD_REQUEST, 10024, "活动已结束!"),
+    STOCK_NOT_ENOUGH(HttpStatus.BAD_REQUEST, 10025, "库存不足!");
     private final HttpStatus status; //  状态码枚举，类型为 HttpStatus
     private final int code;
     private final String message;

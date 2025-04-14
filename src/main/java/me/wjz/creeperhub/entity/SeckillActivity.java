@@ -1,5 +1,8 @@
 package me.wjz.creeperhub.entity;
 
+import lombok.Data;
+
+@Data
 public class SeckillActivity {
     Long itemId;//活动商品ID，不一定实际需要
     Double price;//秒杀价格
