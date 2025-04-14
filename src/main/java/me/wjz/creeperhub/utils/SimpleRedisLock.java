@@ -8,8 +8,7 @@ public class SimpleRedisLock {
     @Autowired
     private RedisService redisService;
     public boolean tryLock(String lockName,long timeoutSec){
-        String id= Thread.currentThread().getId() + "";
-        Boolean success = redisService.setIfAbsent(lockName+":"+id, 1, timeoutSec);
+        Boolean success = redisService.setIfAbsent(lockName, Thread.currentThread().getId(), timeoutSec);
         return Boolean.TRUE.equals(success);
     }
 
