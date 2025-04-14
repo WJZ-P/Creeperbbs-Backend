@@ -92,6 +92,8 @@ public class RedisService {
     public <T> T execute(DefaultRedisScript<T> defaultRedisScript, List<String> redisKey, String string) {
         return stringRedisTemplate.execute(defaultRedisScript, redisKey, string);
     }
+
+
     public <T> T execute(DefaultRedisScript<T> defaultRedisScript, List<String> redisKey) {
         return stringRedisTemplate.execute(defaultRedisScript, redisKey);
     }
