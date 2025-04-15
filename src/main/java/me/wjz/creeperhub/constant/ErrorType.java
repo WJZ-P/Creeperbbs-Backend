@@ -33,7 +33,8 @@ public enum ErrorType {
     DOUBLE_LIKE( HttpStatus.BAD_REQUEST, 10022, "不能重复点赞!"),
     NOT_START(HttpStatus.BAD_REQUEST, 10023, "活动未开始!"),
     ALREADY_END(HttpStatus.BAD_REQUEST, 10024, "活动已结束!"),
-    STOCK_NOT_ENOUGH(HttpStatus.BAD_REQUEST, 10025, "库存不足!");
+    STOCK_NOT_ENOUGH(HttpStatus.BAD_REQUEST, 10025, "库存不足!"),
+    OPERATION_ERROR(HttpStatus.BAD_REQUEST, 10026, "操作失败!");
     private final HttpStatus status; //  状态码枚举，类型为 HttpStatus
     private final int code;
     private final String message;
